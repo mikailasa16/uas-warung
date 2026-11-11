@@ -1,0 +1,79 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  admin
+  operator
+}
+
+model User {
+  id           String        @id @default(uuid())
+  username     String        @unique
+  passwordHash String        @map("password_hash")
+  name         String
+  role         Role          @default(operator)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  transactions Transaction[]
+
+  @@map("users")
+}
+
+model Category {
+  id           String    @id @default(uuid())
+  categoryName String    @unique @map("category_name")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  products     Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id                 String              @id @default(uuid())
+  categoryId         String              @map("category_id")
+  barcode            String?             @unique
+  productName        String              @map("product_name")
+  costPrice          Decimal             @map("cost_price") @db.Decimal(12, 2)
+  sellingPrice       Decimal             @map("selling_price") @db.Decimal(12, 2)
+  stock              Int                 @default(0)
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  category           Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  transactionDetails TransactionDetail[]
+
+  @@map("products")
+}
+
+model Transaction {
+  id                String              @id @default(uuid())
+  transactionNumber String              @unique @map("transaction_number")
+  userId            String              @map("user_id")
+  totalAmount       Decimal             @map("total_amount") @db.Decimal(12, 2)
+  paymentAmount     Decimal             @map("payment_amount") @db.Decimal(12, 2)
+  changeAmount      Decimal             @map("change_amount") @db.Decimal(12, 2)
+  createdAt         DateTime            @default(now()) @map("created_at")
+  user              User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  details           TransactionDetail[]
+
+  @@map("transactions")
+}
+
+model TransactionDetail {
+  id            String      @id @default(uuid())
+  transactionId String      @map("transaction_id")
+  productId     String      @map("product_id")
+  quantity      Int
+  unitPrice     Decimal     @map("unit_price") @db.Decimal(12, 2)
+  subtotal      Decimal     @db.Decimal(12, 2)
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("transaction_details")
+}

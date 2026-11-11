@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Warung POS",
+    "slug": "warung-pos",
+    "version": "1.0.0",
+    "scheme": "warungpos",
+    "orientation": "default",
+    "userInterfaceStyle": "light",
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-sharing",
+      "expo-status-bar"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.warungpos"
+    },
+    "android": {
+      "package": "com.example.warungpos"
+    }
+  }
+}

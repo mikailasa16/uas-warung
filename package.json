@@ -1,0 +1,17 @@
+{
+  "name": "warung-pos",
+  "private": true,
+  "description": "POS & Inventory untuk Warung Kelontong (server: Express+Prisma+MySQL, client: Expo)",
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "setup:db": "npm --prefix server run setup",
+    "server": "npm --prefix server run dev",
+    "web": "npm --prefix client run web",
+    "mobile": "npm --prefix client run start"
+  },
+  "dependencies": {
+    "expo": "^58.0.22",
+    "react": "19.3.0",
+    "react-native": "0.88.1"
+  }
+}
