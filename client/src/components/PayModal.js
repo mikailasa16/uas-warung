@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { colors } from '../theme';
 import { rupiah } from '../utils/format';
 import { AppModal, Button, Chip, Input } from './ui';
+import { Text } from './Typography';
 
 export default function PayModal({ visible, total, onClose, onConfirm }) {
   const [payStr, setPayStr] = useState('');
@@ -41,20 +42,20 @@ export default function PayModal({ visible, total, onClose, onConfirm }) {
     <AppModal
       visible={visible}
       onClose={onClose}
-      title="Pembayaran Tunai"
+      title="Pembayaran"
       maxWidth={440}
       footer={
         <>
           <Button title="Batal" variant="ghost" onPress={onClose} style={{ flex: 1 }} />
-          <Button title="Selesaikan" onPress={submit} loading={submitting} disabled={pay < total || total <= 0} style={{ flex: 2 }} />
+          <Button title="Proses pembayaran" onPress={submit} loading={submitting} disabled={pay < total || total <= 0} style={{ flex: 2 }} />
         </>
       }
     >
-      <Text style={{ color: colors.muted, fontWeight: '600' }}>Total belanja</Text>
+      <Text style={{ color: colors.muted, fontWeight: '600' }}>Total transaksi</Text>
       <Text style={{ fontSize: 30, fontWeight: '800', color: colors.primary, marginBottom: 14 }}>{rupiah(total)}</Text>
 
       <Input
-        label="Uang diterima (Rp)"
+        label="Nominal diterima (Rp)"
         value={payStr}
         onChangeText={(t) => setPayStr(t.replace(/\D/g, ''))}
         keyboardType="numeric"
@@ -65,13 +66,13 @@ export default function PayModal({ visible, total, onClose, onConfirm }) {
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
         {quick.map((n) => (
           <View key={n} style={{ marginBottom: 8 }}>
-            <Chip label={n === total ? 'Uang Pas' : rupiah(n)} active={pay === n} onPress={() => setPayStr(String(n))} />
+            <Chip label={n === total ? 'Nominal pas' : rupiah(n)} active={pay === n} onPress={() => setPayStr(String(n))} />
           </View>
         ))}
       </View>
 
       <View style={{ backgroundColor: change >= 0 && pay > 0 ? colors.successLight : colors.bg, borderRadius: 12, padding: 14 }}>
-        <Text style={{ color: colors.muted, fontWeight: '600' }}>{pay > 0 && change < 0 ? 'Kurang' : 'Kembalian'}</Text>
+        <Text style={{ color: colors.muted, fontWeight: '600' }}>{pay > 0 && change < 0 ? 'Kekurangan' : 'Kembalian'}</Text>
         <Text style={{ fontSize: 26, fontWeight: '800', color: pay > 0 && change < 0 ? colors.danger : colors.success }}>
           {rupiah(pay > 0 ? Math.abs(change) : 0)}
         </Text>

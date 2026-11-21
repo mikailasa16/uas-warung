@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { colors } from '../../src/theme';
 import { dataService } from '../../src/services/dataService';
 import { useToast } from '../../src/context/ToastContext';
 import { confirmDialog } from '../../src/utils/confirm';
 import { AppModal, Badge, Button, Card, Empty, Input, Loading, Screen } from '../../src/components/ui';
+import { Text } from '../../src/components/Typography';
 
 export default function CategoriesScreen() {
   const toast = useToast();
@@ -30,14 +31,14 @@ export default function CategoriesScreen() {
   }, []);
 
   const save = async () => {
-    if (!form.categoryName.trim()) return setError('Nama kategori wajib diisi');
+    if (!form.categoryName.trim()) return setError('Nama kategori harus diisi.');
     setSaving(true);
     setError('');
     try {
       if (form.id) await dataService.updateCategory(form.id, { categoryName: form.categoryName.trim() });
       else await dataService.createCategory({ categoryName: form.categoryName.trim() });
       setForm(null);
-      toast.show('Kategori disimpan', 'success');
+      toast.show('Kategori berhasil disimpan.', 'success');
       load();
     } catch (e) {
       setError(e.message);
@@ -50,7 +51,7 @@ export default function CategoriesScreen() {
     if (!(await confirmDialog('Hapus kategori?', `Kategori "${c.categoryName}" akan dihapus.`))) return;
     try {
       await dataService.deleteCategory(c.id);
-      toast.show('Kategori dihapus', 'success');
+      toast.show('Kategori berhasil dihapus.', 'success');
       load();
     } catch (e) {
       toast.show(e.message, 'error');
@@ -60,9 +61,9 @@ export default function CategoriesScreen() {
   if (loading) return <Loading />;
 
   return (
-    <Screen title="Kategori" subtitle="Kelompokkan produk (Sembako, Minuman, Jajanan, ...)" right={<Button small title="+ Tambah" onPress={() => { setError(''); setForm({ categoryName: '' }); }} />}>
+    <Screen title="Kategori" subtitle="Atur kelompok produk, seperti sembako dan minuman." right={<Button small title="+ Kategori" onPress={() => { setError(''); setForm({ categoryName: '' }); }} />}>
       <Card style={{ padding: 0 }}>
-        {rows.length === 0 ? <Empty text="Belum ada kategori." /> : null}
+        {rows.length === 0 ? <Empty text="Belum ada kategori. Tambahkan kategori untuk mengelompokkan produk." /> : null}
         {rows.map((c, i) => (
           <View key={c.id} style={{ flexDirection: 'row', alignItems: 'center', padding: 14, borderTopWidth: i === 0 ? 0 : 1, borderColor: colors.border, gap: 8 }}>
             <View style={{ flex: 1 }}>
@@ -78,7 +79,7 @@ export default function CategoriesScreen() {
       <AppModal
         visible={!!form}
         onClose={() => setForm(null)}
-        title={form?.id ? 'Ubah Kategori' : 'Tambah Kategori'}
+        title={form?.id ? 'Ubah kategori' : 'Tambah kategori'}
         maxWidth={420}
         footer={
           <>

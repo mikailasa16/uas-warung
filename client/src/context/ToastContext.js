@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { colors } from '../theme';
+import { Text } from '../components/Typography';
 
 const ToastCtx = createContext({ show: () => {} });
 export const useToast = () => useContext(ToastCtx);

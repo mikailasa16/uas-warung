@@ -1,9 +1,10 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { colors } from '../theme';
 import { useCart } from '../context/CartContext';
 import { rupiah } from '../utils/format';
 import { Button, Empty } from './ui';
+import { Text } from './Typography';
 
 export default function CartPanel({ onPay }) {
   const { items, inc, dec, remove, clear, total, count } = useCart();
@@ -13,13 +14,13 @@ export default function CartPanel({ onPay }) {
         <Text style={styles.title}>Keranjang ({count})</Text>
         {items.length > 0 ? (
           <Pressable onPress={clear}>
-            <Text style={{ color: colors.danger, fontWeight: '700' }}>Kosongkan</Text>
+            <Text style={{ color: colors.danger, fontWeight: '600' }}>Hapus semua</Text>
           </Pressable>
         ) : null}
       </View>
 
       {items.length === 0 ? (
-        <Empty text="Keranjang masih kosong. Ketuk produk untuk menambahkan." />
+        <Empty text="Belum ada produk. Pilih produk dari daftar untuk memulai transaksi." />
       ) : (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 12 }}>
           {items.map((i) => (
@@ -34,7 +35,7 @@ export default function CartPanel({ onPay }) {
                 </View>
               </View>
               <View style={{ alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                <Pressable onPress={() => remove(i.productId)} hitSlop={8}><Text style={{ color: colors.danger, fontSize: 18 }}>✕</Text></Pressable>
+                <Pressable onPress={() => remove(i.productId)} hitSlop={8}><Text style={{ color: colors.danger, fontSize: 14, fontWeight: '700' }}>X</Text></Pressable>
                 <Text style={{ fontWeight: '800', color: colors.text }}>{rupiah(i.unitPrice * i.quantity)}</Text>
               </View>
             </View>

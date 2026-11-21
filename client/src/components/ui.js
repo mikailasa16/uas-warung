@@ -1,6 +1,7 @@
 import React from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { colors } from '../theme';
+import { Text, TextInput } from './Typography';
 
 const VARIANTS = {
   primary: { bg: colors.primary, fg: '#fff', border: colors.primary },
@@ -79,7 +80,7 @@ export function AppModal({ visible, onClose, title, children, footer, maxWidth =
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>{title}</Text>
             <Pressable onPress={onClose} hitSlop={10}>
-              <Text style={{ fontSize: 22, color: colors.muted }}>✕</Text>
+              <Text style={{ fontSize: 18, color: colors.muted }}>X</Text>
             </Pressable>
           </View>
           <ScrollView style={{ flexGrow: 0 }} contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
@@ -133,7 +134,7 @@ export function StatCard({ label, value, tone = 'info', icon }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <Text style={{ color: colors.muted, fontWeight: '600' }}>{label}</Text>
         <View style={{ backgroundColor: t.bg, borderRadius: 20, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 18 }}>{icon}</Text>
+          <Text style={{ fontSize: 12, fontWeight: '800', color: t.fg }}>{icon}</Text>
         </View>
       </View>
       <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text, marginTop: 8 }}>{value}</Text>
@@ -142,22 +143,22 @@ export function StatCard({ label, value, tone = 'info', icon }) {
 }
 
 const styles = StyleSheet.create({
-  btn: { minHeight: 44, paddingHorizontal: 16, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  btn: { minHeight: 44, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   btnSmall: { minHeight: 34, paddingHorizontal: 12 },
-  btnText: { fontWeight: '700', fontSize: 15 },
-  label: { fontWeight: '600', color: colors.text, marginBottom: 6 },
-  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 10, paddingHorizontal: 12, minHeight: 44, backgroundColor: '#fff', color: colors.text, fontSize: 15 },
+  btnText: { fontWeight: '700', fontSize: 15, letterSpacing: 0.1 },
+  label: { fontWeight: '600', color: colors.text, marginBottom: 6, fontSize: 13 },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, paddingHorizontal: 12, minHeight: 44, backgroundColor: '#fff', color: colors.text, fontSize: 15 },
   error: { color: colors.danger, marginTop: 4, fontSize: 12 },
-  card: { backgroundColor: colors.card, borderRadius: 14, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: colors.border },
+  card: { backgroundColor: colors.card, borderRadius: 10, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: colors.border },
   badge: { alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
-  badgeText: { fontSize: 12, fontWeight: '700' },
+  badgeText: { fontSize: 12, fontWeight: '600' },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: '#fff', marginRight: 8 },
-  chipText: { fontWeight: '600', color: colors.text },
+  chipText: { fontWeight: '600', color: colors.text, fontSize: 13 },
   overlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.55)', alignItems: 'center', justifyContent: 'center', padding: 12 },
   sheet: { width: '100%', backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden' },
   sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderColor: colors.border },
-  sheetTitle: { fontSize: 18, fontWeight: '800', color: colors.text },
+  sheetTitle: { fontSize: 18, fontWeight: '700', color: colors.text, letterSpacing: -0.2 },
   sheetFooter: { flexDirection: 'row', gap: 8, padding: 12, borderTopWidth: 1, borderColor: colors.border },
   screenHeader: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderColor: colors.border },
-  screenTitle: { fontSize: 22, fontWeight: '800', color: colors.text },
+  screenTitle: { fontSize: 22, fontWeight: '700', color: colors.text, letterSpacing: -0.4 },
 });

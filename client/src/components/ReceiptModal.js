@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Platform, Text, View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { colors, STORE_NAME } from '../theme';
 import { formatDateTime, rupiah } from '../utils/format';
 import { printReceipt, sharePdf } from '../utils/printReceipt';
 import { AppModal, Button } from './ui';
+import { Text } from './Typography';
 
 const Line = ({ left, right, bold }) => (
   <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 2 }}>
@@ -44,8 +45,8 @@ export default function ReceiptModal({ visible, trx, onClose, title = 'Struk Pem
         <Text style={{ textAlign: 'center', fontWeight: '800', fontSize: 18, color: colors.text }}>{STORE_NAME}</Text>
         <Text style={{ textAlign: 'center', color: colors.muted, marginBottom: 6 }}>Struk Pembelian</Text>
         <Dash />
-        <Text style={{ color: colors.text }}>No: {trx.transactionNumber}</Text>
-        <Text style={{ color: colors.text }}>Tgl: {formatDateTime(trx.createdAt)}</Text>
+        <Text style={{ color: colors.text }}>Nomor transaksi: {trx.transactionNumber}</Text>
+        <Text style={{ color: colors.text }}>Tanggal: {formatDateTime(trx.createdAt)}</Text>
         <Text style={{ color: colors.text }}>Kasir: {trx.user?.name || '-'}</Text>
         <Dash />
         {trx.details.map((d) => (
@@ -59,7 +60,7 @@ export default function ReceiptModal({ visible, trx, onClose, title = 'Struk Pem
         <Line left="Tunai" right={rupiah(trx.paymentAmount)} />
         <Line left="Kembalian" right={rupiah(trx.changeAmount)} />
         <Dash />
-        <Text style={{ textAlign: 'center', color: colors.muted }}>Terima kasih sudah berbelanja!</Text>
+        <Text style={{ textAlign: 'center', color: colors.muted }}>Terima kasih telah berbelanja di {STORE_NAME}.</Text>
       </View>
       {msg ? <Text style={{ color: colors.danger, marginTop: 10 }}>{msg}</Text> : null}
     </AppModal>

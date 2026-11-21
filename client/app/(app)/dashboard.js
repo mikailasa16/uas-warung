@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { colors } from '../../src/theme';
 import { dataService } from '../../src/services/dataService';
 import { useToast } from '../../src/context/ToastContext';
 import { rupiah } from '../../src/utils/format';
 import { Badge, Button, Card, Empty, Loading, Screen, StatCard } from '../../src/components/ui';
+import { Text } from '../../src/components/Typography';
 
 export default function DashboardScreen() {
   const toast = useToast();
@@ -28,20 +29,20 @@ export default function DashboardScreen() {
   }, []);
 
   if (loading && !data) return <Loading />;
-  if (!data) return <Screen title="Dashboard"><Empty text="Data tidak dapat dimuat." /></Screen>;
+  if (!data) return <Screen title="Ringkasan"><Empty text="Data ringkasan belum dapat dimuat." /></Screen>;
 
   const max = Math.max(1, ...data.last7Days.map((d) => d.revenue));
 
   return (
-    <Screen title="Dashboard" subtitle="Ringkasan toko hari ini" right={<Button small variant="ghost" title="Muat ulang" onPress={load} />}>
+    <Screen title="Ringkasan" subtitle="Penjualan dan persediaan hari ini" right={<Button small variant="ghost" title="Perbarui" onPress={load} />}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
-        <StatCard label="Omzet Hari Ini" value={rupiah(data.todayRevenue)} icon="💰" tone="success" />
-        <StatCard label="Jumlah Transaksi" value={String(data.todayTransactions)} icon="🧾" tone="info" />
-        <StatCard label="Stok Menipis" value={`${data.lowStockCount} produk`} icon="⚠️" tone={data.lowStockCount > 0 ? 'warn' : 'success'} />
+        <StatCard label="Penjualan hari ini" value={rupiah(data.todayRevenue)} icon="PJ" tone="success" />
+        <StatCard label="Transaksi hari ini" value={String(data.todayTransactions)} icon="TR" tone="info" />
+        <StatCard label="Stok menipis" value={`${data.lowStockCount} produk`} icon="ST" tone={data.lowStockCount > 0 ? 'warn' : 'success'} />
       </View>
 
       <Card>
-        <Text style={{ fontWeight: '800', fontSize: 16, color: colors.text, marginBottom: 12 }}>Omzet 7 Hari Terakhir</Text>
+        <Text style={{ fontWeight: '700', fontSize: 16, color: colors.text, marginBottom: 12 }}>Penjualan 7 hari terakhir</Text>
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 150 }}>
           {data.last7Days.map((d) => (
             <View key={d.date} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -54,9 +55,9 @@ export default function DashboardScreen() {
       </Card>
 
       <Card>
-        <Text style={{ fontWeight: '800', fontSize: 16, color: colors.text, marginBottom: 8 }}>Peringatan Stok Menipis (&lt; 5)</Text>
+        <Text style={{ fontWeight: '700', fontSize: 16, color: colors.text, marginBottom: 8 }}>Produk dengan stok di bawah 5</Text>
         {data.lowStockProducts.length === 0 ? (
-          <Empty text="Semua stok aman 👍" />
+          <Empty text="Tidak ada produk dengan stok menipis." />
         ) : (
           data.lowStockProducts.map((p) => (
             <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderColor: colors.border }}>

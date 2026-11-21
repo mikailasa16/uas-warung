@@ -6,6 +6,7 @@
     "install:all": "npm --prefix server install && npm --prefix client install",
     "setup:db": "npm --prefix server run setup",
     "server": "npm --prefix server run dev",
+    "start": "npm --prefix client run start",
     "web": "npm --prefix client run web",
     "mobile": "npm --prefix client run start"
   },

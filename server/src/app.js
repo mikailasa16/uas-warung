@@ -4,9 +4,12 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { env } from './config/env.js';
 import routes from './routes/index.js';
+import { yoga } from './src/graphql/yoga.js';
 import { notFound, errorHandler } from './middlewares/errorHandler.js';
 
 const app = express();
+
+app.use(yoga.graphqlEndpoint, yoga);
 
 app.use(helmet());
 app.use(

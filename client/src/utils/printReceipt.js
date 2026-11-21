@@ -19,13 +19,13 @@ export function buildReceiptHtml(trx) {
   table{width:100%;border-collapse:collapse}td{padding:2px 0}hr{border:0;border-top:1px dashed #000}
   h2,p{text-align:center;margin:4px 0}</style></head><body>
   <h2>${esc(STORE_NAME)}</h2><p>Struk Pembelian</p><hr>
-  <p style="text-align:left">No: ${esc(trx.transactionNumber)}<br>Tgl: ${formatDateTime(trx.createdAt)}<br>Kasir: ${esc(trx.user?.name)}</p><hr>
+  <p style="text-align:left">Nomor transaksi: ${esc(trx.transactionNumber)}<br>Tanggal: ${formatDateTime(trx.createdAt)}<br>Kasir: ${esc(trx.user?.name)}</p><hr>
   <table>${rows}</table><hr>
   <table>
    <tr><td>Total</td><td style="text-align:right"><b>${rupiah(trx.totalAmount)}</b></td></tr>
    <tr><td>Tunai</td><td style="text-align:right">${rupiah(trx.paymentAmount)}</td></tr>
    <tr><td>Kembalian</td><td style="text-align:right">${rupiah(trx.changeAmount)}</td></tr>
-  </table><hr><p>Terima kasih sudah berbelanja!</p></body></html>`;
+  </table><hr><p>Terima kasih telah berbelanja di ${esc(STORE_NAME)}.</p></body></html>`;
 }
 
 export async function printReceipt(trx) {

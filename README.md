@@ -33,7 +33,7 @@ Database `warung_pos` dibuat otomatis. Berisi 2 akun, 5 kategori, 19 produk, dan
 npm run server     # terminal 1 -> http://localhost:4000/api/health
 npm run web        # terminal 2 -> buka http://localhost:8081
 ```
-HP (Android/iOS): `npm run mobile`, lalu scan QR dengan Expo Go (HP & laptop satu WiFi).
+HP (Android/iOS): `npm start` atau `npm run mobile`, lalu scan QR dengan Expo Go (HP & laptop satu WiFi).
 Izinkan Node.js di Windows Firewall (jaringan privat) agar HP bisa menjangkau server port 4000.
 
 ### Mode Demo Offline

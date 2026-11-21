@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { FlatList, Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BREAKPOINT, colors } from '../../src/theme';
 import { dataService } from '../../src/services/dataService';
@@ -10,6 +10,7 @@ import { Badge, Button, Chip, Loading, Screen } from '../../src/components/ui';
 import CartPanel from '../../src/components/CartPanel';
 import PayModal from '../../src/components/PayModal';
 import ReceiptModal from '../../src/components/ReceiptModal';
+import { Text, TextInput } from '../../src/components/Typography';
 
 function ProductTile({ p, onPress }) {
   const out = p.stock <= 0;
@@ -79,10 +80,10 @@ export default function PosScreen() {
     const code = scan.trim();
     if (!code) return;
     const p = products.find((x) => x.barcode === code);
-    if (!p) toast.show(`Barcode ${code} tidak ditemukan`, 'error');
+    if (!p) toast.show(`Kode batang ${code} tidak ditemukan.`, 'error');
     else {
       cart.add(p);
-      toast.show(`Ditambahkan: ${p.productName}`, 'success');
+      toast.show(`${p.productName} ditambahkan ke keranjang.`, 'success');
     }
     setScan('');
   };
@@ -90,10 +91,10 @@ export default function PosScreen() {
   // Simulasi scanner barcode: ambil produk acak yang stoknya ada
   const simulateScan = () => {
     const avail = products.filter((p) => p.barcode && p.stock > 0);
-    if (!avail.length) return toast.show('Tidak ada produk dengan barcode', 'error');
+    if (!avail.length) return toast.show('Tidak ada produk berkode batang dengan stok tersedia.', 'error');
     const p = avail[Math.floor(Math.random() * avail.length)];
     cart.add(p);
-    toast.show(`Scan ${p.barcode}: ${p.productName}`, 'success');
+    toast.show(`Contoh pemindaian: ${p.productName} (${p.barcode}).`, 'success');
   };
 
   const confirmPay = async (paymentAmount) => {
@@ -113,19 +114,19 @@ export default function PosScreen() {
   const catalog = (
     <View style={{ flex: 1 }}>
       <View style={{ padding: 12, paddingBottom: 4 }}>
-        <TextInput value={search} onChangeText={setSearch} placeholder="🔍  Cari nama produk atau barcode..." placeholderTextColor="#94A3B8" style={styles.search} />
+        <TextInput value={search} onChangeText={setSearch} placeholder="Cari produk berdasarkan nama atau kode" placeholderTextColor="#94A3B8" style={styles.search} />
         <View style={{ flexDirection: 'row', marginTop: 8, gap: 8 }}>
           <TextInput
             value={scan}
             onChangeText={setScan}
             onSubmitEditing={onScan}
-            placeholder="Scan / ketik barcode lalu Enter"
+            placeholder="Pindai atau masukkan kode batang"
             placeholderTextColor="#94A3B8"
             keyboardType="numeric"
             style={[styles.search, { flex: 1 }]}
           />
           <Button small title="Tambah" variant="outline" onPress={onScan} />
-          <Button small title="Simulasi Scan" onPress={simulateScan} />
+          <Button small title="Contoh pemindaian" onPress={simulateScan} />
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 10 }}>
           <Chip label="Semua" active={!catId} onPress={() => setCatId(null)} />
@@ -143,13 +144,13 @@ export default function PosScreen() {
         renderItem={({ item }) =>
           item.pad ? <View style={{ flex: 1, margin: 4 }} /> : <ProductTile p={item} onPress={() => cart.add(item)} />
         }
-        ListEmptyComponent={<Text style={{ textAlign: 'center', color: colors.muted, padding: 32 }}>Produk tidak ditemukan</Text>}
+        ListEmptyComponent={<Text style={{ textAlign: 'center', color: colors.muted, padding: 32 }}>Produk tidak ditemukan.</Text>}
       />
     </View>
   );
 
   return (
-    <Screen title="Kasir" subtitle="Ketuk produk untuk menambah ke keranjang" scroll={false}>
+    <Screen title="Kasir" subtitle="Pilih produk untuk memasukkannya ke keranjang." scroll={false}>
       {wide ? (
         <View style={{ flex: 1, flexDirection: 'row' }}>
           <View style={{ flex: 1 }}>{catalog}</View>
@@ -162,8 +163,8 @@ export default function PosScreen() {
           {catalog}
           {cart.count > 0 ? (
             <Pressable onPress={() => setCartOpen(true)} style={styles.floatBar}>
-              <Text style={{ color: '#fff', fontWeight: '800' }}>🛒 {cart.count} item</Text>
-              <Text style={{ color: '#fff', fontWeight: '800' }}>{rupiah(cart.total)}  ›</Text>
+              <Text style={{ color: '#fff', fontWeight: '700' }}>Keranjang · {cart.count} item</Text>
+              <Text style={{ color: '#fff', fontWeight: '800' }}>{rupiah(cart.total)}  &gt;</Text>
             </Pressable>
           ) : null}
         </View>
@@ -172,14 +173,14 @@ export default function PosScreen() {
       <Modal visible={cartOpen} animationType="slide" onRequestClose={() => setCartOpen(false)}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
           <Pressable onPress={() => setCartOpen(false)} style={{ padding: 14, borderBottomWidth: 1, borderColor: colors.border }}>
-            <Text style={{ color: colors.primary, fontWeight: '800' }}>‹ Kembali ke produk</Text>
+            <Text style={{ color: colors.primary, fontWeight: '600' }}>Kembali ke daftar produk</Text>
           </Pressable>
           <CartPanel onPay={() => { setCartOpen(false); setPayOpen(true); }} />
         </SafeAreaView>
       </Modal>
 
       <PayModal visible={payOpen} total={cart.total} onClose={() => setPayOpen(false)} onConfirm={confirmPay} />
-      <ReceiptModal visible={!!receipt} trx={receipt} onClose={() => setReceipt(null)} title="Pembayaran Berhasil" />
+      <ReceiptModal visible={!!receipt} trx={receipt} onClose={() => setReceipt(null)} title="Transaksi berhasil" />
     </Screen>
   );
 }

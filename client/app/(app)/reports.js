@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { colors } from '../../src/theme';
 import { dataService } from '../../src/services/dataService';
 import { useToast } from '../../src/context/ToastContext';
 import { formatDateLong, formatDateTime, formatMonth, rupiah, ymd } from '../../src/utils/format';
 import { Button, Card, Chip, Empty, Loading, Screen, StatCard } from '../../src/components/ui';
 import ReceiptModal from '../../src/components/ReceiptModal';
+import { Text } from '../../src/components/Typography';
 
 export default function ReportsScreen() {
   const toast = useToast();
@@ -40,16 +41,16 @@ export default function ReportsScreen() {
   const label = period === 'monthly' ? formatMonth(date) : formatDateLong(date);
 
   return (
-    <Screen title="Laporan Penjualan" subtitle="Riwayat transaksi per hari atau per bulan">
+    <Screen title="Laporan penjualan" subtitle="Tinjau transaksi berdasarkan tanggal atau bulan.">
       <View style={{ flexDirection: 'row', marginBottom: 12 }}>
         <Chip label="Harian" active={period === 'daily'} onPress={() => setPeriod('daily')} />
         <Chip label="Bulanan" active={period === 'monthly'} onPress={() => setPeriod('monthly')} />
       </View>
 
       <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <Button small variant="ghost" title="◀" onPress={() => shift(-1)} />
+        <Button small variant="ghost" title="<" onPress={() => shift(-1)} />
         <Text style={{ flex: 1, textAlign: 'center', fontWeight: '800', fontSize: 16, color: colors.text }}>{label}</Text>
-        <Button small variant="ghost" title="▶" onPress={() => shift(1)} />
+        <Button small variant="ghost" title=">" onPress={() => shift(1)} />
         <Button small variant="outline" title="Hari ini" onPress={() => setDate(new Date())} />
       </Card>
 
@@ -58,12 +59,12 @@ export default function ReportsScreen() {
       ) : data ? (
         <>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
-            <StatCard label="Jumlah Transaksi" value={String(data.summary.count)} icon="🧾" tone="info" />
-            <StatCard label="Total Omzet" value={rupiah(data.summary.revenue)} icon="💰" tone="success" />
+            <StatCard label="Jumlah transaksi" value={String(data.summary.count)} icon="TR" tone="info" />
+            <StatCard label="Total penjualan" value={rupiah(data.summary.revenue)} icon="PJ" tone="success" />
           </View>
 
           <Card style={{ padding: 0 }}>
-            {data.items.length === 0 ? <Empty text="Tidak ada transaksi pada periode ini." /> : null}
+            {data.items.length === 0 ? <Empty text="Tidak ada transaksi pada periode yang dipilih." /> : null}
             {data.items.map((t, i) => (
               <Pressable
                 key={t.id}
@@ -73,11 +74,11 @@ export default function ReportsScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontWeight: '800', color: colors.text }}>{t.transactionNumber}</Text>
                   <Text style={{ color: colors.muted, fontSize: 12 }}>
-                    {formatDateTime(t.createdAt)} · {t.user?.name} · {t.details.length} jenis barang
+                    {formatDateTime(t.createdAt)} · {t.user?.name} · {t.details.length} produk
                   </Text>
                 </View>
                 <Text style={{ fontWeight: '800', color: colors.primary }}>{rupiah(t.totalAmount)}</Text>
-                <Text style={{ color: colors.muted, marginLeft: 8 }}>›</Text>
+                <Text style={{ color: colors.muted, marginLeft: 8 }}>&gt;</Text>
               </Pressable>
             ))}
           </Card>
