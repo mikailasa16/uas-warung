@@ -1,61 +1,84 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { colors } from '../theme';
+import { borderWidth, colors, fonts, layout, radius, shadow, space, type } from '../theme';
 import { Text, TextInput } from './Typography';
 
 const VARIANTS = {
-  primary: { bg: colors.primary, fg: '#fff', border: colors.primary },
-  outline: { bg: '#fff', fg: colors.primary, border: colors.primary },
-  danger: { bg: colors.danger, fg: '#fff', border: colors.danger },
-  dangerOutline: { bg: '#fff', fg: colors.danger, border: colors.danger },
-  ghost: { bg: colors.bg, fg: colors.text, border: colors.border },
+  primary: { bg: colors.brick, fg: colors.cream, border: colors.brickDark },
+  outline: { bg: colors.surface, fg: colors.ink, border: colors.hairlineStrong },
+  danger: { bg: colors.brickDark, fg: colors.cream, border: colors.brickDark },
+  dangerOutline: { bg: colors.surface, fg: colors.brickDark, border: colors.brick },
+  ghost: { bg: 'transparent', fg: colors.inkSoft, border: 'transparent' },
 };
+
 const TONES = {
-  success: { bg: colors.successLight, fg: colors.success },
-  danger: { bg: colors.dangerLight, fg: colors.danger },
-  warn: { bg: colors.warnLight, fg: colors.warn },
-  info: { bg: colors.primaryLight, fg: colors.primaryDark },
-  muted: { bg: colors.bg, fg: colors.muted },
+  success: { bg: colors.pineWash, fg: colors.pine },
+  danger: { bg: colors.brickWash, fg: colors.brickDark },
+  warn: { bg: colors.mustardWash, fg: colors.mustardInk },
+  info: { bg: colors.surfaceAlt, fg: colors.inkSoft },
+  muted: { bg: colors.surfaceAlt, fg: colors.mutedInk },
 };
 
 export function Button({ title, onPress, variant = 'primary', disabled, loading, small, style }) {
-  const v = VARIANTS[variant];
+  const v = VARIANTS[variant] || VARIANTS.primary;
+  const filled = variant === 'primary' || variant === 'danger';
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
-      style={({ pressed }) => [
+      style={({ pressed, hovered }) => [
         styles.btn,
         small && styles.btnSmall,
-        { backgroundColor: v.bg, borderColor: v.border, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 },
+        { backgroundColor: v.bg, borderColor: v.border },
+        hovered && !disabled && { backgroundColor: filled ? colors.brickDark : colors.surfaceAlt },
+        pressed && !disabled && { opacity: 0.85 },
+        disabled && { opacity: 0.45 },
         style,
       ]}
     >
-      {loading ? <ActivityIndicator color={v.fg} /> : <Text style={[styles.btnText, small && { fontSize: 13 }, { color: v.fg }]}>{title}</Text>}
+      {loading ? (
+        <ActivityIndicator color={v.fg} />
+      ) : (
+        <Text style={[styles.btnText, small && styles.btnTextSmall, { color: v.fg }]}>{title}</Text>
+      )}
     </Pressable>
   );
 }
 
 export function Input({ label, error, style, ...props }) {
+  const [focused, setFocused] = useState(false);
   return (
-    <View style={[{ marginBottom: 12 }, style]}>
+    <View style={[{ marginBottom: space.md }, style]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <TextInput
-        placeholderTextColor="#94A3B8"
+        placeholderTextColor={colors.hairlineStrong}
         {...props}
-        style={[styles.input, error && { borderColor: colors.danger }]}
+        onFocus={(e) => {
+          setFocused(true);
+          props.onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          props.onBlur?.(e);
+        }}
+        style={[
+          styles.input,
+          focused && { borderColor: colors.brick },
+          error && { borderColor: colors.brickDark },
+        ]}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
   );
 }
 
+/** Panel dasar Buku Kas: permukaan kertas + hairline, tanpa shadow. */
 export function Card({ children, style }) {
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
 export function Badge({ text, tone = 'muted' }) {
-  const t = TONES[tone];
+  const t = TONES[tone] || TONES.muted;
   return (
     <View style={[styles.badge, { backgroundColor: t.bg }]}>
       <Text style={[styles.badgeText, { color: t.fg }]}>{text}</Text>
@@ -65,8 +88,15 @@ export function Badge({ text, tone = 'muted' }) {
 
 export function Chip({ label, active, onPress }) {
   return (
-    <Pressable onPress={onPress} style={[styles.chip, active && { backgroundColor: colors.primary, borderColor: colors.primary }]}>
-      <Text style={[styles.chipText, active && { color: '#fff' }]}>{label}</Text>
+    <Pressable
+      onPress={onPress}
+      style={({ hovered }) => [
+        styles.chip,
+        hovered && !active && { backgroundColor: colors.surfaceAlt },
+        active && { backgroundColor: colors.ink, borderColor: colors.ink },
+      ]}
+    >
+      <Text style={[styles.chipText, active && { color: colors.cream }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -77,13 +107,14 @@ export function AppModal({ visible, onClose, title, children, footer, maxWidth =
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={[styles.sheet, { maxWidth, maxHeight: height * 0.9 }]}>
+          <View style={styles.sheetRule} />
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>{title}</Text>
-            <Pressable onPress={onClose} hitSlop={10}>
-              <Text style={{ fontSize: 18, color: colors.muted }}>X</Text>
+            <Pressable onPress={onClose} hitSlop={10} style={styles.closeBtn}>
+              <Text style={styles.closeText} accessibilityLabel="Tutup">×</Text>
             </Pressable>
           </View>
-          <ScrollView style={{ flexGrow: 0 }} contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+          <ScrollView style={{ flexGrow: 0 }} contentContainerStyle={{ padding: space.lg }} keyboardShouldPersistTaps="handled">
             {children}
           </ScrollView>
           {footer ? <View style={styles.sheetFooter}>{footer}</View> : null}
@@ -96,16 +127,21 @@ export function AppModal({ visible, onClose, title, children, footer, maxWidth =
 export function Screen({ title, subtitle, right, children, scroll = true }) {
   const Body = scroll ? ScrollView : View;
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    <View style={{ flex: 1, backgroundColor: colors.paper }}>
       <View style={styles.screenHeader}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.screenTitle}>{title}</Text>
-          {subtitle ? <Text style={{ color: colors.muted, marginTop: 2 }}>{subtitle}</Text> : null}
+        <View style={styles.screenHeaderInner}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.screenTitle}>{title}</Text>
+            {subtitle ? <Text style={styles.screenSubtitle}>{subtitle}</Text> : null}
+          </View>
+          {right}
         </View>
-        {right}
       </View>
-      <Body style={{ flex: 1 }} contentContainerStyle={scroll ? { padding: 16, paddingBottom: 40 } : undefined}>
-        {children}
+      <Body
+        style={{ flex: 1 }}
+        contentContainerStyle={scroll ? styles.screenBody : undefined}
+      >
+        {scroll ? <View style={styles.screenBodyInner}>{children}</View> : children}
       </Body>
     </View>
   );
@@ -113,52 +149,184 @@ export function Screen({ title, subtitle, right, children, scroll = true }) {
 
 export function Loading() {
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-      <ActivityIndicator size="large" color={colors.primary} />
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.xl, backgroundColor: colors.paper }}>
+      <ActivityIndicator size="large" color={colors.brick} />
     </View>
   );
 }
 
 export function Empty({ text }) {
   return (
-    <View style={{ alignItems: 'center', padding: 32 }}>
-      <Text style={{ color: colors.muted, textAlign: 'center' }}>{text}</Text>
+    <View style={styles.empty}>
+      <Text style={styles.emptyText}>{text}</Text>
     </View>
   );
 }
 
-export function StatCard({ label, value, tone = 'info', icon }) {
-  const t = TONES[tone];
+/**
+ * Kompatibilitas: layar lama masih memakai StatCard.
+ * Versi baru = sel buku kas (label mikro, angka monospace), tanpa lingkaran ikon.
+ */
+export function StatCard({ label, value, tone = 'info' }) {
+  const t = TONES[tone] || TONES.info;
   return (
-    <View style={[styles.card, { flex: 1, minWidth: 220, marginBottom: 0 }]}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text style={{ color: colors.muted, fontWeight: '600' }}>{label}</Text>
-        <View style={{ backgroundColor: t.bg, borderRadius: 20, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 12, fontWeight: '800', color: t.fg }}>{icon}</Text>
-        </View>
-      </View>
-      <Text style={{ fontSize: 26, fontWeight: '800', color: colors.text, marginTop: 8 }}>{value}</Text>
+    <View style={styles.statCard}>
+      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={[styles.statValue, { color: t.fg }]}>{value}</Text>
     </View>
   );
 }
+
+export const uiStyles = StyleSheet.create({
+  microLabel: {
+    ...type.micro,
+    color: colors.mutedInk,
+  },
+  mono: {
+    fontFamily: fonts.mono,
+    fontVariant: ['tabular-nums'],
+  },
+  panelTitle: {
+    ...type.section,
+    color: colors.ink,
+  },
+});
 
 const styles = StyleSheet.create({
-  btn: { minHeight: 44, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  btnSmall: { minHeight: 34, paddingHorizontal: 12 },
-  btnText: { fontWeight: '700', fontSize: 15, letterSpacing: 0.1 },
-  label: { fontWeight: '600', color: colors.text, marginBottom: 6, fontSize: 13 },
-  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, paddingHorizontal: 12, minHeight: 44, backgroundColor: '#fff', color: colors.text, fontSize: 15 },
-  error: { color: colors.danger, marginTop: 4, fontSize: 12 },
-  card: { backgroundColor: colors.card, borderRadius: 10, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: colors.border },
-  badge: { alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3 },
-  badgeText: { fontSize: 12, fontWeight: '600' },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: '#fff', marginRight: 8 },
-  chipText: { fontWeight: '600', color: colors.text, fontSize: 13 },
-  overlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.55)', alignItems: 'center', justifyContent: 'center', padding: 12 },
-  sheet: { width: '100%', backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden' },
-  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderColor: colors.border },
-  sheetTitle: { fontSize: 18, fontWeight: '700', color: colors.text, letterSpacing: -0.2 },
-  sheetFooter: { flexDirection: 'row', gap: 8, padding: 12, borderTopWidth: 1, borderColor: colors.border },
-  screenHeader: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#fff', borderBottomWidth: 1, borderColor: colors.border },
-  screenTitle: { fontSize: 22, fontWeight: '700', color: colors.text, letterSpacing: -0.4 },
+  btn: {
+    minHeight: 40,
+    paddingHorizontal: space.lg,
+    borderRadius: radius.md,
+    borderWidth: borderWidth.hairline,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnSmall: { minHeight: 32, paddingHorizontal: space.md, borderRadius: radius.sm },
+  btnText: { fontWeight: '600', fontSize: 14, letterSpacing: 0 },
+  btnTextSmall: { fontSize: 13 },
+  label: {
+    ...type.micro,
+    color: colors.mutedInk,
+    marginBottom: space.sm,
+  },
+  input: {
+    borderWidth: borderWidth.hairline,
+    borderColor: colors.hairlineStrong,
+    borderRadius: radius.md,
+    paddingHorizontal: space.md,
+    minHeight: 40,
+    backgroundColor: colors.surface,
+    color: colors.ink,
+    fontSize: 14,
+  },
+  error: { color: colors.brickDark, marginTop: space.xs, fontSize: 12 },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: space.lg,
+    marginBottom: space.md,
+    borderWidth: borderWidth.hairline,
+    borderColor: colors.hairline,
+  },
+  badge: { alignSelf: 'flex-start', borderRadius: radius.sm, paddingHorizontal: 6, paddingVertical: 2 },
+  badgeText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.2 },
+  chip: {
+    paddingHorizontal: space.md,
+    paddingVertical: 6,
+    borderRadius: radius.md,
+    borderWidth: borderWidth.hairline,
+    borderColor: colors.hairline,
+    backgroundColor: colors.surface,
+    marginRight: space.sm,
+  },
+  chipText: { fontWeight: '600', color: colors.inkSoft, fontSize: 13 },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(28, 25, 23, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: space.md,
+  },
+  sheet: {
+    width: '100%',
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    borderWidth: borderWidth.hairline,
+    borderColor: colors.hairlineStrong,
+    overflow: 'hidden',
+    ...shadow.modal,
+  },
+  sheetRule: { height: borderWidth.accent, backgroundColor: colors.brick },
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: space.lg,
+    paddingVertical: space.md,
+    borderBottomWidth: borderWidth.hairline,
+    borderColor: colors.hairline,
+  },
+  sheetTitle: { fontSize: 17, fontWeight: '700', color: colors.ink, letterSpacing: -0.2 },
+  closeBtn: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center' },
+  closeText: { fontSize: 22, lineHeight: 24, color: colors.mutedInk },
+  sheetFooter: {
+    flexDirection: 'row',
+    gap: space.sm,
+    padding: space.md,
+    borderTopWidth: borderWidth.hairline,
+    borderColor: colors.hairline,
+    backgroundColor: colors.surfaceAlt,
+  },
+  screenHeader: {
+    backgroundColor: colors.paper,
+    borderBottomWidth: borderWidth.hairline,
+    borderColor: colors.hairline,
+    paddingHorizontal: space.xl,
+    paddingTop: space.xl,
+    paddingBottom: space.lg,
+  },
+  screenHeaderInner: {
+    width: '100%',
+    maxWidth: layout.maxContent,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: space.md,
+  },
+  screenTitle: { ...type.page, color: colors.ink },
+  screenSubtitle: { ...type.small, color: colors.mutedInk, marginTop: space.xs },
+  screenBody: { padding: space.xl, paddingBottom: space.xxxl, flexGrow: 1 },
+  screenBodyInner: { width: '100%', maxWidth: layout.maxContent, alignSelf: 'center', flexGrow: 1 },
+  empty: {
+    alignItems: 'center',
+    padding: space.xl,
+    borderWidth: borderWidth.hairline,
+    borderColor: colors.hairline,
+    borderStyle: 'dashed',
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+  },
+  emptyText: { ...type.small, color: colors.mutedInk, textAlign: 'center' },
+  statCard: {
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.hairline,
+    borderColor: colors.hairline,
+    borderRadius: radius.lg,
+    padding: space.lg,
+    marginBottom: space.md,
+  },
+  statLabel: { ...type.micro, color: colors.mutedInk },
+  statValue: monoValueStyle(),
 });
+
+/** Angka uang/kuantitas selalu monospace + tabular, seperti nota. */
+function monoValueStyle() {
+  return {
+    fontFamily: fonts.mono,
+    fontVariant: ['tabular-nums'],
+    fontSize: 22,
+    fontWeight: '600',
+    marginTop: space.sm,
+    color: colors.ink,
+  };
+}
