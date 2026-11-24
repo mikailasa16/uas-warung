@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView, View, useWindowDimensions } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BREAKPOINT, colors } from '../../src/theme';
 import { dataService } from '../../src/services/dataService';
 import { useToast } from '../../src/context/ToastContext';
@@ -21,11 +22,15 @@ export default function ProductsScreen() {
   const { width } = useWindowDimensions();
   const wide = width >= BREAKPOINT;
   const toast = useToast();
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const filterParam = Array.isArray(params.filter) ? params.filter[0] : params.filter;
 
   const [products, setProducts] = useState([]);
   const [cats, setCats] = useState([]);
   const [search, setSearch] = useState('');
   const [catId, setCatId] = useState(null);
+  const [lowOnly, setLowOnly] = useState(filterParam === 'low');
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(null);
   const [error, setError] = useState('');
@@ -47,9 +52,35 @@ export default function ProductsScreen() {
   }, [search, catId, toast]);
 
   useEffect(() => {
+    if (filterParam === 'low') {
+      setLowOnly(true);
+      setCatId(null);
+      setSearch('');
+    } else {
+      setLowOnly(false);
+    }
+  }, [filterParam]);
+
+  useEffect(() => {
     const t = setTimeout(load, 250);
     return () => clearTimeout(t);
   }, [load]);
+
+  const selectAll = () => {
+    setCatId(null);
+    setLowOnly(false);
+    router.setParams({ filter: 'all' });
+  };
+  const selectLowStock = () => {
+    setCatId(null);
+    setLowOnly(true);
+    router.setParams({ filter: 'low' });
+  };
+  const selectCategory = (id) => {
+    setCatId(id);
+    setLowOnly(false);
+    router.setParams({ filter: 'all' });
+  };
 
   const openNew = () => {
     setError('');
@@ -110,8 +141,14 @@ export default function ProductsScreen() {
 
   if (loading) return <Loading />;
 
+  const visible = lowOnly ? products.filter((p) => Number(p.stock) < LOW_STOCK) : products;
+
   return (
-    <Screen title="Produk dan stok" subtitle={`${products.length} produk terdaftar`} right={<Button small title="+ Produk" onPress={openNew} />}>
+    <Screen
+      title="Produk dan stok"
+      subtitle={lowOnly ? `${visible.length} produk stok menipis` : `${visible.length} produk terdaftar`}
+      right={<Button small title="+ Produk" onPress={openNew} />}
+    >
       <TextInput
         value={search}
         onChangeText={setSearch}
@@ -120,9 +157,11 @@ export default function ProductsScreen() {
         style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border, borderRadius: 10, paddingHorizontal: 12, minHeight: 44, marginBottom: 10, color: colors.text }}
       />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12, flexGrow: 0 }}>
-        <Chip label="Semua" active={!catId} onPress={() => setCatId(null)} />
+        <Chip label="Semua" active={!catId && !lowOnly} onPress={selectAll} />
+        <Chip label="Stok menipis" active={lowOnly} onPress={selectLowStock} />
+        <View style={{ width: 1, height: 24, alignSelf: 'center', backgroundColor: colors.hairline, marginRight: 10 }} />
         {cats.map((c) => (
-          <Chip key={c.id} label={c.categoryName} active={catId === c.id} onPress={() => setCatId(c.id)} />
+          <Chip key={c.id} label={c.categoryName} active={catId === c.id} onPress={() => selectCategory(c.id)} />
         ))}
       </ScrollView>
 
@@ -134,9 +173,17 @@ export default function ProductsScreen() {
             ))}
           </View>
         ) : null}
-        {products.length === 0 ? <Empty text="Produk tidak ditemukan. Coba ubah kata pencarian atau kategori." /> : null}
+        {visible.length === 0 ? (
+          <Empty
+            text={
+              lowOnly
+                ? 'Tidak ada produk dengan stok menipis.'
+                : 'Produk tidak ditemukan. Coba ubah kata pencarian atau kategori.'
+            }
+          />
+        ) : null}
 
-        {products.map((p, i) =>
+        {visible.map((p, i) =>
           wide ? (
             <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', padding: 12, borderTopWidth: 1, borderColor: colors.border }}>
               <View style={{ flex: 2.2 }}>
