@@ -102,11 +102,14 @@ export function Chip({ label, active, onPress }) {
 }
 
 export function AppModal({ visible, onClose, title, children, footer, maxWidth = 520 }) {
-  const { height } = useWindowDimensions();
+  const { height, width } = useWindowDimensions();
+  // Sisakan ruang di atas/bawah supaya kartu tidak pernah menempel ke tepi layar.
+  const verticalMargin = width < 480 ? 16 : 32;
+  const maxHeight = Math.max(260, height - verticalMargin * 2);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <View style={[styles.sheet, { maxWidth, maxHeight: height * 0.9 }]}>
+        <View style={[styles.sheet, { maxWidth, maxHeight }]}>
           <View style={styles.sheetRule} />
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>{title}</Text>
@@ -114,7 +117,12 @@ export function AppModal({ visible, onClose, title, children, footer, maxWidth =
               <Text style={styles.closeText} accessibilityLabel="Tutup">×</Text>
             </Pressable>
           </View>
-          <ScrollView style={{ flexGrow: 0 }} contentContainerStyle={{ padding: space.lg }} keyboardShouldPersistTaps="handled">
+          {/* flexShrink wajib: tanpa ini isi panjang mendorong footer keluar dari kartu. */}
+          <ScrollView
+            style={styles.sheetBody}
+            contentContainerStyle={{ padding: space.lg }}
+            keyboardShouldPersistTaps="handled"
+          >
             {children}
           </ScrollView>
           {footer ? <View style={styles.sheetFooter}>{footer}</View> : null}
@@ -254,8 +262,10 @@ const styles = StyleSheet.create({
     borderWidth: borderWidth.hairline,
     borderColor: colors.hairlineStrong,
     overflow: 'hidden',
+    flexShrink: 1,
     ...shadow.modal,
   },
+  sheetBody: { flexGrow: 0, flexShrink: 1, minHeight: 0 },
   sheetRule: { height: borderWidth.accent, backgroundColor: colors.brick },
   sheetHeader: {
     flexDirection: 'row',
@@ -271,6 +281,7 @@ const styles = StyleSheet.create({
   closeText: { fontSize: 22, lineHeight: 24, color: colors.mutedInk },
   sheetFooter: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: space.sm,
     padding: space.md,
     borderTopWidth: borderWidth.hairline,

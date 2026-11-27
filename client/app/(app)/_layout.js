@@ -10,6 +10,7 @@ import { Text } from '../../src/components/Typography';
 const NAV = [
   { href: '/dashboard', label: 'Ringkasan', roles: ['admin'] },
   { href: '/pos', label: 'Kasir', roles: ['admin', 'operator'] },
+  { href: '/pembelian', label: 'Pembelian', roles: ['admin'] },
   { href: '/products', label: 'Produk', roles: ['admin'] },
   { href: '/categories', label: 'Kategori', roles: ['admin'] },
   { href: '/reports', label: 'Laporan', roles: ['admin'] },

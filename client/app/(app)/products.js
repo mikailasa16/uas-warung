@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BREAKPOINT, colors } from '../../src/theme';
 import { dataService } from '../../src/services/dataService';
 import { useToast } from '../../src/context/ToastContext';
-import { confirmDialog } from '../../src/utils/confirm';
+import { useConfirm } from '../../src/context/ConfirmContext';
 import { LOW_STOCK, rupiah } from '../../src/utils/format';
 import { AppModal, Badge, Button, Card, Chip, Empty, Input, Loading, Screen } from '../../src/components/ui';
 import { Text, TextInput } from '../../src/components/Typography';
@@ -22,6 +22,7 @@ export default function ProductsScreen() {
   const { width } = useWindowDimensions();
   const wide = width >= BREAKPOINT;
   const toast = useToast();
+  const confirm = useConfirm();
   const router = useRouter();
   const params = useLocalSearchParams();
   const filterParam = Array.isArray(params.filter) ? params.filter[0] : params.filter;
@@ -129,7 +130,13 @@ export default function ProductsScreen() {
   };
 
   const remove = async (p) => {
-    if (!(await confirmDialog('Hapus produk?', `"${p.productName}" akan dihapus permanen.`))) return;
+    const ok = await confirm({
+      title: 'Hapus produk?',
+      message: `"${p.productName}" akan dihapus permanen dari daftar produk.`,
+      confirmLabel: 'Hapus',
+      tone: 'danger',
+    });
+    if (!ok) return;
     try {
       await dataService.deleteProduct(p.id);
       toast.show('Produk berhasil dihapus.', 'success');

@@ -3,12 +3,13 @@ import { View } from 'react-native';
 import { colors } from '../../src/theme';
 import { dataService } from '../../src/services/dataService';
 import { useToast } from '../../src/context/ToastContext';
-import { confirmDialog } from '../../src/utils/confirm';
+import { useConfirm } from '../../src/context/ConfirmContext';
 import { AppModal, Badge, Button, Card, Empty, Input, Loading, Screen } from '../../src/components/ui';
 import { Text } from '../../src/components/Typography';
 
 export default function CategoriesScreen() {
   const toast = useToast();
+  const confirm = useConfirm();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(null); // { id?, categoryName }
@@ -48,7 +49,13 @@ export default function CategoriesScreen() {
   };
 
   const remove = async (c) => {
-    if (!(await confirmDialog('Hapus kategori?', `Kategori "${c.categoryName}" akan dihapus.`))) return;
+    const ok = await confirm({
+      title: 'Hapus kategori?',
+      message: `Kategori "${c.categoryName}" akan dihapus. Kategori yang masih dipakai produk tidak bisa dihapus.`,
+      confirmLabel: 'Hapus',
+      tone: 'danger',
+    });
+    if (!ok) return;
     try {
       await dataService.deleteCategory(c.id);
       toast.show('Kategori berhasil dihapus.', 'success');

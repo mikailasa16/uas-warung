@@ -7,6 +7,8 @@ let mode = 'api';
 const METHODS = [
   'me', 'listCategories', 'createCategory', 'updateCategory', 'deleteCategory',
   'listProducts', 'getProductByBarcode', 'createProduct', 'updateProduct', 'deleteProduct',
+  'listSuppliers', 'createSupplier', 'updateSupplier', 'deleteSupplier',
+  'listPurchases', 'getPurchase', 'createPurchase', 'updatePurchase', 'receivePurchase', 'cancelPurchase', 'deletePurchase',
   'checkout', 'myTransactions', 'dashboard', 'reportTransactions',
 ];
 

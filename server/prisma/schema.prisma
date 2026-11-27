@@ -12,6 +12,13 @@ enum Role {
   operator
 }
 
+enum PurchaseStatus {
+  draft
+  dipesan
+  diterima
+  batal
+}
+
 model User {
   id           String        @id @default(uuid())
   username     String        @unique
@@ -21,16 +28,18 @@ model User {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
   transactions Transaction[]
+  purchases    Purchase[]
 
   @@map("users")
 }
 
 model Category {
-  id           String    @id @default(uuid())
-  categoryName String    @unique @map("category_name")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  products     Product[]
+  id            String         @id @default(uuid())
+  categoryName  String         @unique @map("category_name")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  products      Product[]
+  purchaseItems PurchaseItem[] @relation("PurchaseItemNewCategory")
 
   @@map("categories")
 }
@@ -47,6 +56,7 @@ model Product {
   updatedAt          DateTime            @updatedAt @map("updated_at")
   category           Category            @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   transactionDetails TransactionDetail[]
+  purchaseItems      PurchaseItem[]
 
   @@map("products")
 }
@@ -76,4 +86,57 @@ model TransactionDetail {
   product       Product     @relation(fields: [productId], references: [id], onDelete: Restrict)
 
   @@map("transaction_details")
+}
+
+model Supplier {
+  id        String     @id @default(uuid())
+  name      String     @unique @db.VarChar(150)
+  phone     String?    @db.VarChar(30)
+  address   String?    @db.Text
+  note      String?    @db.Text
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  purchases Purchase[]
+
+  @@map("suppliers")
+}
+
+// Nota pembelian ke supplier. Stok baru bertambah saat status menjadi 'diterima'.
+model Purchase {
+  id             String         @id @default(uuid())
+  purchaseNumber String         @unique @map("purchase_number") @db.VarChar(50)
+  supplierId     String?        @map("supplier_id")
+  userId         String         @map("user_id")
+  status         PurchaseStatus @default(draft)
+  totalAmount    Decimal        @map("total_amount") @db.Decimal(12, 2)
+  note           String?        @db.Text
+  orderedAt      DateTime?      @map("ordered_at")
+  receivedAt     DateTime?      @map("received_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  supplier       Supplier?      @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items          PurchaseItem[]
+
+  @@map("purchases")
+}
+
+// productId kosong = barang baru; produk baru dibuat saat nota diterima.
+model PurchaseItem {
+  id              String    @id @default(uuid())
+  purchaseId      String    @map("purchase_id")
+  productId       String?   @map("product_id")
+  productName     String    @map("product_name") @db.VarChar(150)
+  quantity        Int
+  unitCost        Decimal   @map("unit_cost") @db.Decimal(12, 2)
+  subtotal        Decimal   @db.Decimal(12, 2)
+  isNewProduct    Boolean   @default(false) @map("is_new_product")
+  newCategoryId   String?   @map("new_category_id")
+  newSellingPrice Decimal?  @map("new_selling_price") @db.Decimal(12, 2)
+  newBarcode      String?   @map("new_barcode") @db.VarChar(50)
+  purchase        Purchase  @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product         Product?  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  newCategory     Category? @relation("PurchaseItemNewCategory", fields: [newCategoryId], references: [id], onDelete: SetNull)
+
+  @@map("purchase_items")
 }

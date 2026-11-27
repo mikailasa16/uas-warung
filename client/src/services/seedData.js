@@ -42,3 +42,9 @@ export const SEED_PRODUCTS = [
   sellingPrice,
   stock,
 }));
+
+export const SEED_SUPPLIERS = [
+  { id: 's1', name: 'Toko Sembako Makmur', phone: '0812-1111-2222', address: 'Jl. Pasar Baru No. 12', note: 'Antar sendiri, minimal order Rp 100.000' },
+  { id: 's2', name: 'Agen Minuman Segar', phone: '0813-3333-4444', address: 'Jl. Raya Industri No. 8', note: 'Minimal order 1 dus' },
+  { id: 's3', name: 'Distribusi Jajanan Nusantara', phone: '0857-5555-6666', address: 'Jl. Merdeka No. 45', note: null },
+];

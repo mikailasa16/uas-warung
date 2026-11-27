@@ -8,6 +8,12 @@ const prisma = new PrismaClient();
 
 const CATEGORIES = ['Sembako', 'Makanan Instan', 'Minuman', 'Jajanan', 'Kebutuhan Rumah'];
 
+const SUPPLIERS = [
+  ['Toko Sembako Makmur', '0812-1111-2222', 'Jl. Pasar Baru No. 12', 'Antar sendiri, minimal order Rp 100.000'],
+  ['Agen Minuman Segar', '0813-3333-4444', 'Jl. Raya Industri No. 8', 'Minimal order 1 dus'],
+  ['Distribusi Jajanan Nusantara', '0857-5555-6666', 'Jl. Merdeka No. 45', null],
+];
+
 // [kategori, barcode, nama, harga beli, harga jual, stok]
 const PRODUCTS = [
   ['Sembako', '8990001001', 'Beras Premium 5kg', 62000, 68000, 20],
@@ -55,6 +61,12 @@ async function main() {
       update: {},
       create: { categoryId: catId[cat], barcode, productName, costPrice, sellingPrice, stock },
     });
+  }
+
+  if ((await prisma.supplier.count()) === 0) {
+    for (const [name, phone, address, note] of SUPPLIERS) {
+      await prisma.supplier.create({ data: { name, phone, address, note } });
+    }
   }
 
   if ((await prisma.transaction.count()) === 0) {

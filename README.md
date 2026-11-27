@@ -26,7 +26,10 @@ npm run install:all
 ```powershell
 npm run setup:db
 ```
-Database `warung_pos` dibuat otomatis. Berisi 2 akun, 5 kategori, 19 produk, dan transaksi 7 hari terakhir.
+Database `warung_pos` dibuat otomatis. Berisi 2 akun, 5 kategori, 19 produk, 3 supplier, dan transaksi 7 hari terakhir.
+
+> Sudah pernah setup sebelumnya? Setelah menarik pembaruan ini cukup jalankan `npm --prefix server run db:push`
+> (menambah tabel supplier/pembelian tanpa menghapus data), lalu `npm --prefix server run seed` untuk supplier contoh.
 
 ### 4. Jalankan (butuh 2 terminal)
 ```powershell
@@ -45,6 +48,10 @@ Jika server/MySQL belum menyala saat login, aplikasi otomatis memakai **data dem
 - Kategori & Produk: tambah/ubah/hapus, cari nama/barcode, filter kategori, badge stok menipis (< 5)
 - Kasir: grid produk, cari, input/simulasi scan barcode, keranjang, bayar tunai + kembalian otomatis,
   stok berkurang otomatis, struk (cetak / simpan PDF)
+- Pembelian & Supplier (khusus admin): data supplier, nota pembelian ke supplier (supplier opsional),
+  tambah barang lama atau barang baru, harga beli bisa diisi manual per nota, status dipesan → diterima.
+  Mencentang "Barang sudah datang" otomatis menambah stok, memperbarui harga pokok, dan membuat produk baru.
+  Nota bisa dicetak / disimpan PDF.
 - Dashboard: omzet hari ini, jumlah transaksi, stok menipis, grafik 7 hari
 - Laporan: filter harian/bulanan, rincian barang per transaksi
 

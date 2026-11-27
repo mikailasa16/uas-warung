@@ -10,6 +10,7 @@ import { PlusJakartaSans_600SemiBold } from '@expo-google-fonts/plus-jakarta-san
 import { PlusJakartaSans_700Bold } from '@expo-google-fonts/plus-jakarta-sans/700Bold';
 import { PlusJakartaSans_800ExtraBold } from '@expo-google-fonts/plus-jakarta-sans/800ExtraBold';
 import { ToastProvider } from '../src/context/ToastContext';
+import { ConfirmProvider } from '../src/context/ConfirmContext';
 import { AuthProvider } from '../src/context/AuthContext';
 import { CartProvider } from '../src/context/CartContext';
 import { colors } from '../src/theme';
@@ -35,12 +36,14 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ToastProvider>
-        <AuthProvider>
-          <CartProvider>
-            <StatusBar style="dark" />
-            <Slot />
-          </CartProvider>
-        </AuthProvider>
+        <ConfirmProvider>
+          <AuthProvider>
+            <CartProvider>
+              <StatusBar style="dark" />
+              <Slot />
+            </CartProvider>
+          </AuthProvider>
+        </ConfirmProvider>
       </ToastProvider>
     </SafeAreaProvider>
   );

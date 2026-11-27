@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { prisma } from '../config/db.js';
+import { ApiError } from '../utils/ApiError.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 const schema = z.object({ categoryName: z.string().trim().min(1, 'Nama kategori wajib diisi').max(100) });
@@ -25,6 +26,10 @@ export const update = asyncHandler(async (req, res) => {
 });
 
 export const remove = asyncHandler(async (req, res) => {
+  const pendingPurchases = await prisma.purchaseItem.count({ where: { newCategoryId: req.params.id } });
+  if (pendingPurchases > 0) {
+    throw new ApiError(409, 'Kategori masih dipakai pada nota pembelian yang belum diterima');
+  }
   await prisma.category.delete({ where: { id: req.params.id } });
   res.json({ success: true, data: null });
 });

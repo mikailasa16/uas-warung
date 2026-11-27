@@ -55,3 +55,49 @@ CREATE TABLE `transaction_details` (
   CONSTRAINT `fk_details_transaction` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_details_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `suppliers` (
+  `id` VARCHAR(36) NOT NULL,
+  `name` VARCHAR(150) NOT NULL UNIQUE,
+  `phone` VARCHAR(30) DEFAULT NULL,
+  `address` TEXT DEFAULT NULL,
+  `note` TEXT DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `purchases` (
+  `id` VARCHAR(36) NOT NULL,
+  `purchase_number` VARCHAR(50) NOT NULL UNIQUE,
+  `supplier_id` VARCHAR(36) DEFAULT NULL,
+  `user_id` VARCHAR(36) NOT NULL,
+  `status` ENUM('draft', 'dipesan', 'diterima', 'batal') NOT NULL DEFAULT 'draft',
+  `total_amount` DECIMAL(12,2) NOT NULL,
+  `note` TEXT DEFAULT NULL,
+  `ordered_at` DATETIME DEFAULT NULL,
+  `received_at` DATETIME DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_purchases_supplier` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_purchases_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `purchase_items` (
+  `id` VARCHAR(36) NOT NULL,
+  `purchase_id` VARCHAR(36) NOT NULL,
+  `product_id` VARCHAR(36) DEFAULT NULL,
+  `product_name` VARCHAR(150) NOT NULL,
+  `quantity` INT NOT NULL,
+  `unit_cost` DECIMAL(12,2) NOT NULL,
+  `subtotal` DECIMAL(12,2) NOT NULL,
+  `is_new_product` TINYINT(1) NOT NULL DEFAULT 0,
+  `new_category_id` VARCHAR(36) DEFAULT NULL,
+  `new_selling_price` DECIMAL(12,2) DEFAULT NULL,
+  `new_barcode` VARCHAR(50) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_purchase_items_purchase` FOREIGN KEY (`purchase_id`) REFERENCES `purchases` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_purchase_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_purchase_items_category` FOREIGN KEY (`new_category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
