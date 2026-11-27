@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Pressable, View, useWindowDimensions } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { borderWidth, colors, fonts, radius, space, type } from '../../src/theme';
 import { dataService } from '../../src/services/dataService';
 import { useToast } from '../../src/context/ToastContext';
@@ -288,7 +288,7 @@ function LowStock({ items, total, onOpen, stack }) {
 }
 
 export default function DashboardScreen() {
-  const toast = useToast();
+  const { show: showToast } = useToast();
   const router = useRouter();
   const { width, height } = useWindowDimensions();
   const [data, setData] = useState(null);
@@ -304,16 +304,18 @@ export default function DashboardScreen() {
     try {
       setData(await dataService.dashboard());
     } catch (e) {
-      toast.show(e.message, 'error');
+      showToast(e.message, 'error');
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [showToast]);
 
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Muat ulang setiap layar Ringkasan kembali difokuskan (mis. setelah transaksi di Kasir).
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   if (loading && !data) return <Loading />;
   if (!data) return <Screen title="Ringkasan"><Empty text="Data ringkasan belum dapat dimuat." /></Screen>;
@@ -349,33 +351,7 @@ export default function DashboardScreen() {
   ];
 
   return (
-    <Screen
-      title="Ringkasan"
-      subtitle="Penjualan dan persediaan hari ini"
-      right={
-        <Pressable
-          onPress={load}
-          disabled={loading}
-          style={({ hovered, pressed }) => [
-            {
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingHorizontal: space.md,
-              paddingVertical: 7,
-              borderRadius: radius.md,
-              borderWidth: borderWidth.hairline,
-              borderColor: colors.hairlineStrong,
-              backgroundColor: colors.surface,
-              opacity: loading ? 0.5 : 1,
-            },
-            hovered && !loading && { backgroundColor: colors.surfaceAlt },
-            pressed && { opacity: 0.75 },
-          ]}
-        >
-          <Text style={{ fontSize: 12.5, color: colors.inkSoft, fontWeight: '600' }}>{loading ? 'Memuat…' : 'Perbarui'}</Text>
-        </Pressable>
-      }
-    >
+    <Screen title="Ringkasan" subtitle="Penjualan dan persediaan hari ini">
       <Card style={{ padding: 0, flexDirection: 'row', flexWrap: 'wrap', marginBottom: space.md }}>
         {metrics.map((m, i) => (
           <MetricCell
