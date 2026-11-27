@@ -1,19 +1,20 @@
 import React from 'react';
 import { Pressable, View, useWindowDimensions } from 'react-native';
 import { Redirect, Slot, usePathname, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { BREAKPOINT, borderWidth, colors, layout, radius, space, STORE_NAME } from '../../src/theme';
 import { useAuth } from '../../src/context/AuthContext';
 import { Badge, Loading } from '../../src/components/ui';
 import { Text } from '../../src/components/Typography';
 
 const NAV = [
-  { href: '/dashboard', label: 'Ringkasan', roles: ['admin'] },
-  { href: '/pos', label: 'Kasir', roles: ['admin', 'operator'] },
-  { href: '/pembelian', label: 'Pembelian', roles: ['admin'] },
-  { href: '/products', label: 'Produk', roles: ['admin'] },
-  { href: '/categories', label: 'Kategori', roles: ['admin'] },
-  { href: '/reports', label: 'Laporan', roles: ['admin'] },
+  { href: '/dashboard', label: 'Ringkasan', icon: 'stats-chart-outline', iconActive: 'stats-chart', roles: ['admin'] },
+  { href: '/pos', label: 'Kasir', icon: 'cart-outline', iconActive: 'cart', roles: ['admin', 'operator'] },
+  { href: '/pembelian', label: 'Pembelian', icon: 'bag-add-outline', iconActive: 'bag-add', roles: ['admin'] },
+  { href: '/products', label: 'Produk', icon: 'cube-outline', iconActive: 'cube', roles: ['admin'] },
+  { href: '/categories', label: 'Kategori', icon: 'grid-outline', iconActive: 'grid', roles: ['admin'] },
+  { href: '/reports', label: 'Laporan', icon: 'document-text-outline', iconActive: 'document-text', roles: ['admin'] },
 ];
 
 function Monogram({ size = 34 }) {
@@ -28,6 +29,9 @@ function NavItem({ item, active, onPress, compact }) {
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole={compact ? 'tab' : 'button'}
+      accessibilityLabel={item.label}
+      accessibilityState={compact ? { selected: active } : undefined}
       style={({ hovered, pressed }) => [
         compact ? compactItemStyle(active) : desktopItemStyle(active),
         hovered && !compact && !active && { backgroundColor: '#2A251F' },
@@ -35,15 +39,25 @@ function NavItem({ item, active, onPress, compact }) {
         pressed && { opacity: 0.8 },
       ]}
     >
-      {!compact ? (
+      {compact ? (
+        <Ionicons
+          name={active ? item.iconActive : item.icon}
+          size={22}
+          color={active ? colors.cream : colors.creamMuted}
+        />
+      ) : (
         <View style={{ width: 3, height: 18, marginRight: 11, backgroundColor: active ? colors.brick : 'transparent', borderRadius: 1 }} />
-      ) : null}
+      )}
       <Text
+        numberOfLines={compact ? 1 : undefined}
         style={{
           color: active ? colors.cream : colors.creamMuted,
           fontWeight: active ? '600' : '500',
-          fontSize: compact ? 11 : 13.5,
-          letterSpacing: compact ? 0 : 0.1,
+          fontSize: compact ? 10 : 13.5,
+          letterSpacing: 0.1,
+          marginTop: compact ? 3 : 0,
+          maxWidth: '100%',
+          textAlign: compact ? 'center' : 'left',
         }}
       >
         {item.label}
@@ -67,9 +81,13 @@ function desktopItemStyle(active) {
 
 function compactItemStyle(active) {
   return {
+    flex: 1,
+    minHeight: 56,
     alignItems: 'center',
-    paddingTop: 9,
+    justifyContent: 'center',
+    paddingTop: space.sm,
     paddingBottom: 6,
+    paddingHorizontal: space.xxs,
     borderTopWidth: 2,
     borderTopColor: active ? colors.brick : 'transparent',
   };
@@ -78,6 +96,7 @@ function compactItemStyle(active) {
 export default function AppShell() {
   const { user, ready, mode, logout } = useAuth();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -147,7 +166,7 @@ export default function AppShell() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
       <View style={mobileBarStyles.bar}>
         <Monogram size={28} />
         <View style={{ flex: 1 }}>
@@ -159,7 +178,16 @@ export default function AppShell() {
             {mode === 'mock' ? ' · Demo' : ''}
           </Text>
         </View>
-        <Pressable onPress={logout} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <Pressable
+          onPress={logout}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Keluar"
+          style={({ pressed }) => [
+            { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', minHeight: 44, minWidth: 64, paddingHorizontal: space.xs },
+            pressed && { opacity: 0.6 },
+          ]}
+        >
           <Text style={{ color: colors.mutedInk, fontSize: 12, fontWeight: '600' }}>Keluar</Text>
           <Text style={{ color: colors.mutedInk, fontSize: 12, marginLeft: 4 }}>→</Text>
         </Pressable>
@@ -168,11 +196,9 @@ export default function AppShell() {
         <Slot />
       </View>
       {nav.length > 1 ? (
-        <View style={mobileBarStyles.nav}>
+        <View style={[mobileBarStyles.nav, { paddingBottom: insets.bottom }]}>
           {nav.map((n) => (
-            <View key={n.href} style={{ flex: 1 }}>
-              <NavItem item={n} active={isActive(n.href)} onPress={() => router.replace(n.href)} compact />
-            </View>
+            <NavItem key={n.href} item={n} active={isActive(n.href)} onPress={() => router.replace(n.href)} compact />
           ))}
         </View>
       ) : null}
