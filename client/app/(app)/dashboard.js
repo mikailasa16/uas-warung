@@ -395,7 +395,7 @@ export default function DashboardScreen() {
           <Chart days={days} compact={compact} plotHeight={plotHeight} />
         </View>
         <View style={{ flex: stack ? undefined : 1, width: stack ? '100%' : undefined, minWidth: stack ? undefined : 320 }}>
-          <LowStock items={low.slice(0, 5)} total={lowCount} stack={stack} onOpen={() => router.push('/products?filter=low')} />
+          <LowStock items={low.slice(0, 5)} total={lowCount} stack={stack} onOpen={() => router.push('/products?sort=stock-asc')} />
         </View>
       </View>
     </Screen>

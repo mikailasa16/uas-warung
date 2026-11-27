@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, View, useWindowDimensions } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Modal, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BREAKPOINT, colors } from '../../src/theme';
 import { dataService } from '../../src/services/dataService';
@@ -18,6 +18,121 @@ function StockBadge({ stock }) {
   return <Badge text={String(stock)} tone="success" />;
 }
 
+const SORT_OPTIONS = [
+  { key: 'name', label: 'Nama A–Z' },
+  { key: 'stock-desc', label: 'Stok terbanyak' },
+  { key: 'stock-asc', label: 'Stok paling sedikit' },
+];
+
+const normalizeSort = (value) =>
+  SORT_OPTIONS.some((o) => o.key === value) ? value : 'name';
+
+/** Corong kecil dari tiga garis — tanpa library ikon tambahan. */
+function FunnelIcon({ color }) {
+  return (
+    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 14, height: 2, borderRadius: 1, backgroundColor: color }} />
+      <View style={{ width: 10, height: 2, borderRadius: 1, backgroundColor: color, marginTop: 3 }} />
+      <View style={{ width: 6, height: 2, borderRadius: 1, backgroundColor: color, marginTop: 3 }} />
+    </View>
+  );
+}
+
+/** Tombol ikon filter + dropdown urutan yang menempel di bawahnya. */
+function SortMenu({ sort, onChange }) {
+  const { width: screenWidth } = useWindowDimensions();
+  const btnRef = useRef(null);
+  const [anchor, setAnchor] = useState(null);
+  const active = sort !== 'name';
+
+  const open = () => {
+    btnRef.current?.measureInWindow((x, y, w, h) => {
+      const menuWidth = 214;
+      const left = Math.min(Math.max(8, x + w - menuWidth), Math.max(8, screenWidth - menuWidth - 8));
+      setAnchor({ left, top: y + h + 6, width: menuWidth });
+    });
+  };
+
+  return (
+    <>
+      <Pressable
+        ref={btnRef}
+        onPress={open}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel="Urutkan produk"
+        style={({ hovered }) => [
+          {
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            borderWidth: 1,
+            borderColor: colors.hairline,
+            backgroundColor: colors.surface,
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+          hovered && { backgroundColor: colors.surfaceAlt },
+          active && { backgroundColor: colors.brickWash, borderColor: colors.brick },
+        ]}
+      >
+        <FunnelIcon color={active ? colors.brick : colors.inkSoft} />
+      </Pressable>
+
+      <Modal visible={!!anchor} transparent animationType="fade" onRequestClose={() => setAnchor(null)}>
+        <View style={{ flex: 1 }}>
+          <Pressable
+            onPress={() => setAnchor(null)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            accessibilityLabel="Tutup menu urutan"
+          />
+          {anchor ? (
+            <View
+              style={{
+                position: 'absolute',
+                left: anchor.left,
+                top: anchor.top,
+                width: anchor.width,
+                backgroundColor: colors.surface,
+                borderWidth: 1,
+                borderColor: colors.hairlineStrong,
+                borderRadius: 10,
+                paddingVertical: 4,
+                shadowColor: '#1C1917',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.14,
+                shadowRadius: 20,
+                elevation: 8,
+              }}
+            >
+              <Text style={{ paddingHorizontal: 12, paddingTop: 6, paddingBottom: 4, fontSize: 11, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase', color: colors.muted }}>Urutkan</Text>
+              {SORT_OPTIONS.map((o) => {
+                const selected = sort === o.key;
+                return (
+                  <Pressable
+                    key={o.key}
+                    onPress={() => {
+                      onChange(o.key);
+                      setAnchor(null);
+                    }}
+                    style={({ hovered }) => [
+                      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10 },
+                      hovered && { backgroundColor: colors.surfaceAlt },
+                    ]}
+                  >
+                    <Text style={{ fontSize: 13, fontWeight: selected ? '700' : '500', color: selected ? colors.ink : colors.inkSoft }}>{o.label}</Text>
+                    {selected ? <Text style={{ color: colors.brick, fontWeight: '700' }}>✓</Text> : null}
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : null}
+        </View>
+      </Modal>
+    </>
+  );
+}
+
 export default function ProductsScreen() {
   const { width } = useWindowDimensions();
   const wide = width >= BREAKPOINT;
@@ -26,12 +141,14 @@ export default function ProductsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const filterParam = Array.isArray(params.filter) ? params.filter[0] : params.filter;
+  const sortParam = Array.isArray(params.sort) ? params.sort[0] : params.sort;
 
   const [products, setProducts] = useState([]);
   const [cats, setCats] = useState([]);
   const [search, setSearch] = useState('');
   const [catId, setCatId] = useState(null);
   const [lowOnly, setLowOnly] = useState(filterParam === 'low');
+  const [sort, setSort] = useState(normalizeSort(sortParam));
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(null);
   const [error, setError] = useState('');
@@ -63,6 +180,15 @@ export default function ProductsScreen() {
   }, [filterParam]);
 
   useEffect(() => {
+    setSort(normalizeSort(sortParam));
+  }, [sortParam]);
+
+  const changeSort = (key) => {
+    setSort(key);
+    router.setParams({ sort: key });
+  };
+
+  useEffect(() => {
     const t = setTimeout(load, 250);
     return () => clearTimeout(t);
   }, [load]);
@@ -72,10 +198,10 @@ export default function ProductsScreen() {
     setLowOnly(false);
     router.setParams({ filter: 'all' });
   };
-  const selectLowStock = () => {
-    setCatId(null);
-    setLowOnly(true);
-    router.setParams({ filter: 'low' });
+  const clearLowStock = () => {
+    setLowOnly(false);
+    setSort('name');
+    router.setParams({ filter: 'all', sort: 'name' });
   };
   const selectCategory = (id) => {
     setCatId(id);
@@ -146,9 +272,18 @@ export default function ProductsScreen() {
     }
   };
 
-  if (loading) return <Loading />;
+  const visible = useMemo(() => {
+    const base = lowOnly ? products.filter((p) => Number(p.stock) < LOW_STOCK) : products;
+    const byName = (a, b) =>
+      String(a.productName || '').toLowerCase().localeCompare(String(b.productName || '').toLowerCase());
+    const rows = [...base];
+    if (sort === 'stock-desc') rows.sort((a, b) => Number(b.stock) - Number(a.stock) || byName(a, b));
+    else if (sort === 'stock-asc') rows.sort((a, b) => Number(a.stock) - Number(b.stock) || byName(a, b));
+    else rows.sort(byName);
+    return rows;
+  }, [products, lowOnly, sort]);
 
-  const visible = lowOnly ? products.filter((p) => Number(p.stock) < LOW_STOCK) : products;
+  if (loading) return <Loading />;
 
   return (
     <Screen
@@ -156,16 +291,42 @@ export default function ProductsScreen() {
       subtitle={lowOnly ? `${visible.length} produk stok menipis` : `${visible.length} produk terdaftar`}
       right={<Button small title="+ Produk" onPress={openNew} />}
     >
-      <TextInput
-        value={search}
-        onChangeText={setSearch}
-        placeholder="Cari produk berdasarkan nama atau kode"
-        placeholderTextColor="#94A3B8"
-        style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border, borderRadius: 10, paddingHorizontal: 12, minHeight: 44, marginBottom: 10, color: colors.text }}
-      />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Cari produk berdasarkan nama atau kode"
+          placeholderTextColor="#94A3B8"
+          style={{ flex: 1, backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border, borderRadius: 10, paddingHorizontal: 12, minHeight: 44, color: colors.text }}
+        />
+        {wide ? null : <SortMenu sort={sort} onChange={changeSort} />}
+      </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12, flexGrow: 0 }}>
         <Chip label="Semua" active={!catId && !lowOnly} onPress={selectAll} />
-        <Chip label="Stok menipis" active={lowOnly} onPress={selectLowStock} />
+        {lowOnly ? (
+          <Pressable
+            onPress={clearLowStock}
+            accessibilityRole="button"
+            accessibilityLabel="Hapus filter stok menipis"
+            style={({ hovered }) => [
+              {
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 10,
+                paddingVertical: 6,
+                borderRadius: 4,
+                borderWidth: 1,
+                borderColor: colors.mustard,
+                backgroundColor: colors.mustardWash,
+                marginRight: 8,
+              },
+              hovered && { opacity: 0.85 },
+            ]}
+          >
+            <Text style={{ fontSize: 13, fontWeight: '600', color: colors.mustardInk }}>Stok menipis</Text>
+            <Text style={{ fontSize: 14, fontWeight: '700', color: colors.mustardInk, marginLeft: 6 }}>×</Text>
+          </Pressable>
+        ) : null}
         <View style={{ width: 1, height: 24, alignSelf: 'center', backgroundColor: colors.hairline, marginRight: 10 }} />
         {cats.map((c) => (
           <Chip key={c.id} label={c.categoryName} active={catId === c.id} onPress={() => selectCategory(c.id)} />
@@ -174,10 +335,14 @@ export default function ProductsScreen() {
 
       <Card style={{ padding: 0 }}>
         {wide ? (
-          <View style={{ flexDirection: 'row', padding: 12, backgroundColor: colors.bg, borderTopLeftRadius: 14, borderTopRightRadius: 14 }}>
-            {[['Produk', 2.2], ['Kategori', 1.2], ['Harga Pokok', 1], ['Harga Jual', 1], ['Stok', 1], ['Aksi', 1.6]].map(([t, f]) => (
+          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12, backgroundColor: colors.bg, borderTopLeftRadius: 14, borderTopRightRadius: 14 }}>
+            {[['Produk', 2.2], ['Kategori', 1.2], ['Harga Pokok', 1], ['Harga Jual', 1], ['Stok', 1]].map(([t, f]) => (
               <Text key={t} style={{ flex: f, fontWeight: '800', color: colors.muted, fontSize: 12 }}>{t.toUpperCase()}</Text>
             ))}
+            <View style={{ flex: 1.6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ fontWeight: '800', color: colors.muted, fontSize: 12 }}>AKSI</Text>
+              <SortMenu sort={sort} onChange={changeSort} />
+            </View>
           </View>
         ) : null}
         {visible.length === 0 ? (
